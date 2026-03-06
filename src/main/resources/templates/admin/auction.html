@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Auction Room')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4"><i class="bi bi-hammer text-danger"></i> Auction Room</h2>
+
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <!-- Left: Players -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Players
+                        <span class="badge bg-light text-dark ms-2"
+                              th:text="${#lists.size(players)}">0</span>
+                    </h5>
+                </div>
+
+                <!-- Search / Filter Bar -->
+                <div class="card-body border-bottom pb-3">
+                    <form th:action="@{/admin/auction}" method="get" class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Search by Name</label>
+                            <input type="text" name="search" class="form-control form-control-sm"
+                                   placeholder="Player name..." th:value="${searchQuery}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Category</label>
+                            <select name="category" class="form-select form-select-sm">
+                                <option value="">All Categories</option>
+                                <option th:each="cat : ${categories}"
+                                        th:value="${cat.name()}"
+                                        th:text="${cat.label}"
+                                        th:selected="${selectedCategory != null && selectedCategory.name() == cat.name()}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Status</label>
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="">All Statuses</option>
+                                <option th:each="st : ${statuses}"
+                                        th:value="${st.name()}"
+                                        th:text="${st.name()}"
+                                        th:selected="${selectedStatus != null && selectedStatus.name() == st.name()}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex gap-1">
+                            <button type="submit" class="btn btn-sm btn-success flex-fill">
+                                <i class="bi bi-search"></i> Filter
+                            </button>
+                            <a th:href="@{/admin/auction}" class="btn btn-sm btn-outline-secondary flex-fill">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Photo</th>
+                                    <th>Player</th>
+                                    <th>Category</th>
+                                    <th>Base Price</th>
+                                    <th>Status</th>
+                                    <th>Sold To</th>
+                                    <th>Sold Price</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="player, stat : ${players}"
+                                    th:classappend="${player.status.name() == 'SOLD'} ? 'table-success' : (${player.status.name() == 'UNSOLD'} ? 'table-warning' : '')">
+                                    <td th:text="${stat.count}">1</td>
+                                    <!-- Clickable photo thumbnail -->
+                                    <td class="text-center p-1">
+                                        <img th:if="${player.profileImagePath != null}"
+                                             th:src="${player.profileImagePath.startsWith('http') ? player.profileImagePath : '/uploads/' + player.profileImagePath}"
+                                             alt="Photo"
+                                             class="player-photo-thumb"
+                                             style="width:44px;height:44px;object-fit:cover;border-radius:6px;cursor:zoom-in;border:2px solid #dee2e6;"
+                                             th:data-name="${player.fullName}"
+                                             th:data-src="${player.profileImagePath.startsWith('http') ? player.profileImagePath : '/uploads/' + player.profileImagePath}"
+                                             onclick="openPhotoZoom(this)"
+                                             onerror="this.style.display='none'">
+                                        <span th:unless="${player.profileImagePath != null}" class="text-muted small">—</span>
+                                    </td>
+                                    <td class="fw-bold" th:text="${player.fullName}">Player</td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${player.category.name() == 'OPEN'} ? 'bg-primary' :
+                                                              (${player.category.name() == 'ABOVE_30'} ? 'bg-info' :
+                                                              (${player.category.name() == 'ABOVE_40'} ? 'bg-warning text-dark' : 'bg-danger'))"
+                                              th:text="${player.category.label}">Cat</span>
+                                    </td>
+                                    <td class="fw-bold">₹<span th:text="${#numbers.formatDecimal(player.basePrice, 0, 0)}">0</span></td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${player.status.name() == 'AVAILABLE'} ? 'bg-primary' :
+                                                              (${player.status.name() == 'SOLD'} ? 'bg-success' : 'bg-secondary')"
+                                              th:text="${player.status.name()}">Status</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${player.team != null}" th:text="${player.team.name}" class="fw-semibold text-success"></span>
+                                        <span th:if="${player.team == null}" class="text-muted">—</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${player.status.name() == 'SOLD'}" class="fw-bold text-success">₹<span th:text="${#numbers.formatDecimal(player.soldPrice, 0, 0)}">0</span></span>
+                                        <span th:if="${player.status.name() != 'SOLD'}" class="text-muted">—</span>
+                                    </td>
+                                    <td>
+                                        <!-- Available: Sell + Unsold -->
+                                        <span th:if="${player.status.name() == 'AVAILABLE'}">
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="modal"
+                                                    th:data-bs-target="'#sellModal' + ${player.id}">
+                                                <i class="bi bi-hammer"></i> Sell
+                                            </button>
+                                            <form th:action="@{/admin/auction/unsold/{id}(id=${player.id})}" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-secondary">
+                                                    <i class="bi bi-x"></i> Unsold
+                                                </button>
+                                            </form>
+                                        </span>
+                                        <!-- Sold/Unsold: Reset -->
+                                        <span th:if="${player.status.name() == 'SOLD' || player.status.name() == 'UNSOLD'}">
+                                            <form th:action="@{/admin/auction/reset/{id}(id=${player.id})}" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary"
+                                                        onclick="return confirm('Reset this player back to available?');">
+                                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                                </button>
+                                            </form>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(players)}">
+                                    <td colspan="9" class="text-center text-muted py-3">
+                                        No players found matching your filter.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Team Budgets -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="bi bi-shield"></i> Team Budgets &amp; Slots</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item" th:each="team : ${teams}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img th:if="${team.logoPath != null and !team.logoPath.equals('default-logo.png')}"
+                                             th:src="@{/uploads/{img}(img=${team.logoPath})}"
+                                             alt="Logo"
+                                             style="width:28px;height:28px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #ccc;"
+                                             onerror="this.style.display='none'">
+                                        <strong th:text="${team.name}">Team</strong>
+                                    </div>
+                                    <span class="badge bg-primary" th:text="${team.playerCount} + '/9'">0/9</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                         th:style="'width:' + ${(team.remainingBudget / team.totalBudget) * 100} + '%'"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="text-success">
+                                        ₹<span th:text="${#numbers.formatDecimal(team.remainingBudget, 0, 0)}">0</span> left
+                                    </small>
+                                    <small class="text-muted" th:text="${team.slotSummary}">slots</small>
+                                </div>
+                </div>
+            </div>
+
+            <!-- Recent Sales -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Sales</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" th:each="bid : ${winningBids}" th:if="${bid.winningBid}">
+                            <div class="d-flex justify-content-between">
+                                <span th:text="${bid.player.fullName}">Player</span>
+                                <span class="text-primary fw-bold">₹<span th:text="${#numbers.formatDecimal(bid.bidAmount, 0, 0)}">0</span></span>
+                            </div>
+                            <small class="text-muted">
+                                → <span th:text="${bid.team.name}">Team</span>
+                            </small>
+                        </li>
+                        <li class="list-group-item text-center text-muted" th:if="${#lists.isEmpty(winningBids)}">
+                            No sales yet.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sell Modals (one per available player) -->
+<div th:each="player : ${players}" th:if="${player.status.name() == 'AVAILABLE'}">
+    <div class="modal fade" th:id="'sellModal' + ${player.id}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-hammer"></i> Sell
+                        <span th:text="${player.fullName}">Player</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/auction/sell}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="playerId" th:value="${player.id}">
+
+                        <!-- Player Photo (large, in modal) -->
+                        <div th:if="${player.profileImagePath != null}" class="text-center mb-3">
+                            <img th:src="${player.profileImagePath.startsWith('http') ? player.profileImagePath : '/uploads/' + player.profileImagePath}"
+                                 alt="Player Photo"
+                                 style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:3px solid #dc3545;"
+                                 onerror="this.style.display='none'">
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Category:</strong> <span th:text="${player.category.label}">Cat</span> |
+                            <strong>Base Price:</strong> ₹<span th:text="${#numbers.formatDecimal(player.basePrice, 0, 0)}">0</span>
+                            <span th:if="${player.achievements != null and !player.achievements.isEmpty()}">
+                                | <strong>Achievements:</strong> <span th:text="${player.achievements}">-</span>
+                            </span>
+                        </div>
+
+                        <!-- Category slot rules reminder -->
+                        <div class="alert alert-warning py-2 mb-2 small">
+                            <i class="bi bi-info-circle"></i>
+                            Slot limits per team: <strong>Open=4</strong> &bull;
+                            <strong>30+=max 2</strong> &bull; <strong>40+=max 2</strong> &bull; <strong>45+=2</strong>
+                            <br><em>30+ and 40+ share 1 extra slot (optional).</em>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select Team *</label>
+                            <select name="teamId" class="form-select" required>
+                                <option value="">Choose buying team...</option>
+                                <option th:each="team : ${teams}"
+                                        th:if="${team.canBuyPlayerByCategory(player.category)}"
+                                        th:value="${team.id}"
+                                        th:text="${team.name + ' (₹' + #numbers.formatDecimal(team.remainingBudget, 0, 0) + ' left | ' + team.slotSummary + ')'}">
+                                    Team
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Sold Price (₹) *</label>
+                            <input type="number" name="soldPrice" class="form-control"
+                                   th:min="${player.basePrice}" step="500" required
+                                   th:value="${player.basePrice}" placeholder="Enter sold price">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-hammer"></i> Confirm Sale
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+
+<!-- ===== Photo Zoom Lightbox Modal ===== -->
+<div class="modal fade" id="photoZoomModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title" id="photoZoomPlayerName">Player Photo</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <img id="photoZoomImg" src="" alt="Player Photo"
+                     style="max-width:100%;max-height:70vh;border-radius:12px;object-fit:contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openPhotoZoom(img) {
+    document.getElementById('photoZoomImg').src = img.dataset.src;
+    document.getElementById('photoZoomPlayerName').textContent = img.dataset.name || 'Player Photo';
+    new bootstrap.Modal(document.getElementById('photoZoomModal')).show();
+}
+</script>
+</body>
+</html>

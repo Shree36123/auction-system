@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Owner Dashboard')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="bi bi-speedometer2"></i> Welcome,
+        <span th:text="${currentUser.fullName}">Owner</span>!
+    </h2>
+
+    <div th:if="${team != null}">
+        <!-- Team Info Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <h4 class="mb-0"><i class="bi bi-shield-fill"></i> <span th:text="${team.name}">My Team</span></h4>
+                <span class="badge bg-warning text-dark fs-6"
+                      th:text="${team.playerCount} + ' / 9 Players'">0/9</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white text-center">
+                            <div class="card-body">
+                                <h6>Total Budget</h6>
+                                <h3>₹<span th:text="${#numbers.formatDecimal(team.totalBudget, 0, 0)}">0</span></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white text-center">
+                            <div class="card-body">
+                                <h6>Remaining Budget</h6>
+                                <h3>₹<span th:text="${#numbers.formatDecimal(team.remainingBudget, 0, 0)}">0</span></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-dark text-center">
+                            <div class="card-body">
+                                <h6>Amount Spent</h6>
+                                <h3>₹<span th:text="${#numbers.formatDecimal(team.spentBudget, 0, 0)}">0</span></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budget Progress Bar -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Budget Utilization</small>
+                        <small th:text="${#numbers.formatDecimal((team.spentBudget / team.totalBudget) * 100, 1, 1)} + '%'">0%</small>
+                    </div>
+                    <div class="progress" style="height: 15px;">
+                        <div class="progress-bar bg-success progress-bar-striped" role="progressbar"
+                             th:style="'width:' + ${(team.spentBudget / team.totalBudget) * 100} + '%'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category-wise Player Count -->
+        <h4 class="mb-3"><i class="bi bi-grid"></i> Category Breakdown</h4>
+        <div class="row g-4 mb-4">
+            <div class="col-md-3" th:each="cat : ${categories}">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <h5 th:text="${cat.label}">Category</h5>
+                        <h2 class="text-primary" th:text="${__${'count_' + cat.name()}__}">0</h2>
+                        <small class="text-muted">players</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Players -->
+        <h4 class="mb-3"><i class="bi bi-people"></i> My Players</h4>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered bg-white shadow-sm">
+                <thead class="table-primary">
+                    <tr>
+                        <th>#</th>
+                        <th>Player</th>
+                        <th>Category</th>
+                        <th>Jersey Size</th>
+                        <th>Bought Price</th>
+                        <th>Achievements</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="player, stat : ${players}">
+                        <td th:text="${stat.count}">1</td>
+                        <td class="fw-bold" th:text="${player.fullName}">Player</td>
+                        <td><span class="badge bg-info" th:text="${player.category.label}">Cat</span></td>
+                        <td th:text="${player.jerseySize}">L</td>
+                        <td class="text-primary fw-bold">₹<span th:text="${#numbers.formatDecimal(player.soldPrice, 0, 0)}">0</span></td>
+                        <td th:text="${player.achievements}">-</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(players)}">
+                        <td colspan="7" class="text-center text-muted py-3">
+                            No players bought yet. Visit the <a th:href="@{/owner/players}">Available Players</a> page.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${team == null}" class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> You don't have a team assigned yet. Please contact the admin.
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>

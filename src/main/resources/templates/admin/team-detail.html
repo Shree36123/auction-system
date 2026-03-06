@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Team Details')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <a th:href="@{/admin/teams}" class="btn btn-outline-secondary mb-3">
+        <i class="bi bi-arrow-left"></i> Back to Teams
+    </a>
+
+    <div th:if="${team != null}">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-dark text-white d-flex align-items-center gap-3">
+                <!-- Team Logo -->
+                <img th:if="${team.logoPath != null and !team.logoPath.equals('default-logo.png')}"
+                     th:src="@{/uploads/{img}(img=${team.logoPath})}"
+                     alt="Team Logo"
+                     style="width:64px;height:64px;object-fit:contain;border-radius:8px;background:#fff;padding:4px;"
+                     onerror="this.style.display='none'">
+                <i th:unless="${team.logoPath != null and !team.logoPath.equals('default-logo.png')}"
+                   class="bi bi-shield-fill fs-2"></i>
+                <h3 class="mb-0"><span th:text="${team.name}">Team</span></h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Owner(s):</strong> <span th:text="${team.ownerNames}">Owner</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Total Budget:</strong> ₹<span th:text="${#numbers.formatDecimal(team.totalBudget, 0, 0)}">0</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Remaining:</strong> 
+                            <span class="text-success fw-bold">
+                                ₹<span th:text="${#numbers.formatDecimal(team.remainingBudget, 0, 0)}">0</span>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress mb-3" style="height: 20px;">
+                    <div class="progress-bar bg-primary" role="progressbar"
+                         th:style="'width: ' + ${(team.playerCount * 100.0 / 9)} + '%'"
+                         th:text="${team.playerCount} + ' / 9 Players'">0/9</div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <h5>Category Breakdown
+                    <small class="text-muted fs-6">(Open: max 4 &bull; 30+: max 2 &bull; 40+: max 2 &bull; 45+: max 2 &bull; 30+/40+ share 1 extra slot)</small>
+                </h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center border-primary">
+                            <div class="card-body py-2">
+                                <h6 class="text-primary">Open</h6>
+                                <h4 th:text="${team.getPlayerCountByCategory(T(com.auction.model.PlayerCategory).OPEN)}">0</h4>
+                                <small class="text-muted">/ 4 slots</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center border-info">
+                            <div class="card-body py-2">
+                                <h6 class="text-info">30+</h6>
+                                <h4 th:text="${team.getPlayerCountByCategory(T(com.auction.model.PlayerCategory).ABOVE_30)}">0</h4>
+                                <small class="text-muted">/ max 2</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center border-warning">
+                            <div class="card-body py-2">
+                                <h6 class="text-warning">40+</h6>
+                                <h4 th:text="${team.getPlayerCountByCategory(T(com.auction.model.PlayerCategory).ABOVE_40)}">0</h4>
+                                <small class="text-muted">/ max 2</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center border-danger">
+                            <div class="card-body py-2">
+                                <h6 class="text-danger">45+</h6>
+                                <h4 th:text="${team.getPlayerCountByCategory(T(com.auction.model.PlayerCategory).ABOVE_45)}">0</h4>
+                                <small class="text-muted">/ 2 slots</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Players Table -->
+        <h4 class="mb-3">Players in Team</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered bg-white shadow-sm">
+                <thead class="table-primary">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Jersey</th>
+                        <th>Sold Price</th>
+                        <th>Achievements</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="player, stat : ${players}">
+                        <td th:text="${stat.count}">1</td>
+                        <td class="fw-bold" th:text="${player.fullName}">Player</td>
+                        <td><span class="badge bg-info" th:text="${player.category.label}">Cat</span></td>
+                        <td th:text="${player.jerseySize}">L</td>
+                        <td class="text-primary">₹<span th:text="${#numbers.formatDecimal(player.soldPrice, 0, 0)}">0</span></td>
+                        <td th:text="${player.achievements}">-</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(players)}">
+                        <td colspan="7" class="text-center text-muted py-3">No players bought yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>
