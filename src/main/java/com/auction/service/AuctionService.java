@@ -46,7 +46,7 @@ public class AuctionService {
 
         if (!team.canBuyPlayerByCategory(player.getCategory())) {
             return "Team cannot add another " + player.getCategory().getLabel()
-                    + " player. Limits: Open=4, 30+=max 2 (incl. 1 shared extra), 40+=max 2 (incl. 1 shared extra), 45+=2.";
+                    + " player. Limits: Open=4, 30+=1, 35+=1 , 40+=2, plus 1 extra from any category.";
         }
 
         if (bidAmount > team.getRemainingBudget()) {
@@ -83,7 +83,7 @@ public class AuctionService {
 
         if (!team.canBuyPlayerByCategory(player.getCategory())) {
             return "Team cannot add another " + player.getCategory().getLabel()
-                    + " player. Limits: Open=4, 30+=max 2 (incl. 1 shared extra), 40+=max 2 (incl. 1 shared extra), 45+=2.";
+                    + " player. Limits: Open=4, 30+=1, 35+=1, 40+=2, plus 1 extra from any category.";
         }
 
         if (soldPrice > team.getRemainingBudget()) {

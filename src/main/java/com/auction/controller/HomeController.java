@@ -16,11 +16,13 @@ public class HomeController {
     private final TeamService teamService;
     private final PlayerService playerService;
     private final UserService userService;
+    private final AuctionService auctionService;
 
-    public HomeController(TeamService teamService, PlayerService playerService, UserService userService) {
+    public HomeController(TeamService teamService, PlayerService playerService, UserService userService, AuctionService auctionService) {
         this.teamService = teamService;
         this.playerService = playerService;
         this.userService = userService;
+        this.auctionService = auctionService;
     }
 
     @GetMapping("/")

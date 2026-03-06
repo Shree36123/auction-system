@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin Dashboard')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-people display-5"></i>
+                    <h3 th:text="${totalPlayers}" class="mt-2">0</h3>
+                    <p>Total Players</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle display-5"></i>
+                    <h3 th:text="${soldPlayers}" class="mt-2">0</h3>
+                    <p>Sold</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-hourglass display-5"></i>
+                    <h3 th:text="${availablePlayers}" class="mt-2">0</h3>
+                    <p>Available</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-x-circle display-5"></i>
+                    <h3 th:text="${unsoldPlayers}" class="mt-2">0</h3>
+                    <p>Unsold</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <a th:href="@{/admin/players/add}" class="btn btn-outline-primary w-100 py-3">
+                <i class="bi bi-person-plus display-6"></i><br>Add Player
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a th:href="@{/admin/teams/add}" class="btn btn-outline-success w-100 py-3">
+                <i class="bi bi-shield-plus display-6"></i><br>Add Team
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a th:href="@{/admin/auction}" class="btn btn-outline-danger w-100 py-3">
+                <i class="bi bi-hammer display-6"></i><br>Run Auction
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a th:href="@{/admin/users/add}" class="btn btn-outline-info w-100 py-3">
+                <i class="bi bi-person-gear display-6"></i><br>Add User
+            </a>
+        </div>
+    </div>
+
+    <!-- Teams Overview Table -->
+    <h4 class="mb-3"><i class="bi bi-shield-fill"></i> Teams Overview</h4>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered bg-white shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Team</th>
+                    <th>Owner</th>
+                    <th>Total Budget</th>
+                    <th>Remaining</th>
+                    <th>Spent</th>
+                    <th>Players</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="team, stat : ${teams}">
+                    <td th:text="${stat.count}">1</td>
+                    <td class="fw-bold" th:text="${team.name}">Team</td>
+                    <td th:text="${team.owner?.fullName}">Owner</td>
+                    <td>₹<span th:text="${#numbers.formatDecimal(team.totalBudget, 0, 0)}">0</span></td>
+                    <td class="text-success fw-bold">₹<span th:text="${#numbers.formatDecimal(team.remainingBudget, 0, 0)}">0</span></td>
+                    <td class="text-danger">₹<span th:text="${#numbers.formatDecimal(team.spentBudget, 0, 0)}">0</span></td>
+                    <td>
+                        <span class="badge bg-primary" th:text="${team.playerCount} + ' / 9'">0/9</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/teams/{id}(id=${team.id})}" class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>

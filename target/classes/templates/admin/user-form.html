@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('User Form')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-plus"></i>
+                        <span th:text="${user != null} ? 'Edit User' : 'Create New User'">User Form</span>
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="${user != null} ? @{/admin/users/edit/{id}(id=${user.id})} : @{/admin/users/add}"
+                          method="post">
+
+                        <!-- Username: editable on add, read-only on edit -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Username *</label>
+                            <input type="text" class="form-control" name="username"
+                                   th:value="${user?.username}"
+                                   th:readonly="${user != null}"
+                                   th:classappend="${user != null} ? 'bg-light'"
+                                   required placeholder="Enter username" minlength="3">
+                            <small class="text-muted" th:if="${user != null}">Username cannot be changed.</small>
+                        </div>
+
+                        <!-- Password: required on add, optional on edit -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Password
+                                <span th:if="${user == null}">*</span>
+                                <small class="text-muted fw-normal" th:if="${user != null}">(leave blank to keep current)</small>
+                            </label>
+                            <input type="password" class="form-control" name="password"
+                                   th:required="${user == null}"
+                                   placeholder="Enter password" minlength="6">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Full Name *</label>
+                            <input type="text" class="form-control" name="fullName" required
+                                   th:value="${user?.fullName}"
+                                   placeholder="Enter full name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Role *</label>
+                            <select name="role" class="form-select" required>
+                                <option value="">Select Role</option>
+                                <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"
+                                        th:selected="${user != null && user.role == r}">Role</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-info text-white">
+                                <i class="bi bi-check-circle"></i>
+                                <span th:text="${user != null} ? 'Update User' : 'Create User'">Save</span>
+                            </button>
+                            <a th:href="@{/admin/users}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>

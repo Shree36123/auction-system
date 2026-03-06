@@ -14,10 +14,10 @@ public class Team {
     // Category slot limits per team
     public static final int MAX_OPEN    = 4;  // 4 Open category players
     public static final int MAX_ABOVE_30 = 1; // 1 guaranteed 30+ slot
-    public static final int MAX_ABOVE_40 = 1; // 1 guaranteed 40+ slot
-    public static final int MAX_ABOVE_45 = 2; // 2 slots for 45+
-    // 1 extra slot shared between ABOVE_30 and ABOVE_40 (not mandatory)
-    public static final int MAX_EXTRA_ABOVE_30_40 = 1;
+    public static final int MAX_ABOVE_35 = 1; // 1 guaranteed 35+ slot
+    public static final int MAX_ABOVE_40 = 2; // 2 slots for 40+
+    // 1 extra slot that can be from ANY category (total = 4 + 1 + 1 + 2 + 1 = 9)
+    public static final int MAX_EXTRA_ANY_CATEGORY = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -106,62 +106,53 @@ public class Team {
      * Check if this team can buy one more player in the given category.
      * Rules:
      *   - OPEN:     max 4
-     *   - ABOVE_30: max 2 (1 guaranteed + 1 shared extra with ABOVE_40)
-     *   - ABOVE_40: max 2 (1 guaranteed + 1 shared extra with ABOVE_30)
-     *   - ABOVE_45: max 2
-     *   Combined ABOVE_30 + ABOVE_40 must not exceed 3 (1 + 1 + 1 shared extra).
+     *   - ABOVE_30: max 1 guaranteed
+     *   - ABOVE_35: max 1 guaranteed
+     *   - ABOVE_40: max 2
+     *   - Extra:    1 additional player from ANY category (flexible)
      *   Total players must not exceed MAX_PLAYERS (9).
      */
     public boolean canBuyPlayerByCategory(PlayerCategory category) {
         long openCount    = getPlayerCountByCategory(PlayerCategory.OPEN);
         long above30Count = getPlayerCountByCategory(PlayerCategory.ABOVE_30);
+        long above35Count = getPlayerCountByCategory(PlayerCategory.ABOVE_35);
         long above40Count = getPlayerCountByCategory(PlayerCategory.ABOVE_40);
-        long above45Count = getPlayerCountByCategory(PlayerCategory.ABOVE_45);
-        long total = openCount + above30Count + above40Count + above45Count;
+        long total = openCount + above30Count + above35Count + above40Count;
 
         if (total >= MAX_PLAYERS) return false;
 
         return switch (category) {
-            case OPEN     -> openCount < MAX_OPEN;
-            case ABOVE_30 -> above30Count < (MAX_ABOVE_30 + MAX_EXTRA_ABOVE_30_40)
-                             && (above30Count + above40Count) < (MAX_ABOVE_30 + MAX_ABOVE_40 + MAX_EXTRA_ABOVE_30_40);
-            case ABOVE_40 -> above40Count < (MAX_ABOVE_40 + MAX_EXTRA_ABOVE_30_40)
-                             && (above30Count + above40Count) < (MAX_ABOVE_30 + MAX_ABOVE_40 + MAX_EXTRA_ABOVE_30_40);
-            case ABOVE_45 -> above45Count < MAX_ABOVE_45;
+            case OPEN     -> openCount < (MAX_OPEN + MAX_EXTRA_ANY_CATEGORY);
+            case ABOVE_30 -> above30Count < (MAX_ABOVE_30 + MAX_EXTRA_ANY_CATEGORY);
+            case ABOVE_35 -> above35Count < (MAX_ABOVE_35 + MAX_EXTRA_ANY_CATEGORY);
+            case ABOVE_40 -> above40Count < (MAX_ABOVE_40 + MAX_EXTRA_ANY_CATEGORY);
         };
     }
 
-    /** Remaining slots for a given category (respects shared-extra rule). */
+    /** Remaining slots for a given category (one flexible extra slot from any category). */
     public long getCategorySlotRemaining(PlayerCategory category) {
-        long above30Count = getPlayerCountByCategory(PlayerCategory.ABOVE_30);
-        long above40Count = getPlayerCountByCategory(PlayerCategory.ABOVE_40);
-        long above45Count = getPlayerCountByCategory(PlayerCategory.ABOVE_45);
         long openCount    = getPlayerCountByCategory(PlayerCategory.OPEN);
-        long total = openCount + above30Count + above40Count + above45Count;
+        long above30Count = getPlayerCountByCategory(PlayerCategory.ABOVE_30);
+        long above35Count = getPlayerCountByCategory(PlayerCategory.ABOVE_35);
+        long above40Count = getPlayerCountByCategory(PlayerCategory.ABOVE_40);
+        long total = openCount + above30Count + above35Count + above40Count;
         long totalRemaining = MAX_PLAYERS - total;
 
         return switch (category) {
-            case OPEN     -> Math.min(MAX_OPEN - openCount, totalRemaining);
-            case ABOVE_30 -> Math.min(
-                    Math.min(MAX_ABOVE_30 + MAX_EXTRA_ABOVE_30_40 - above30Count,
-                             MAX_ABOVE_30 + MAX_ABOVE_40 + MAX_EXTRA_ABOVE_30_40 - above30Count - above40Count),
-                    totalRemaining);
-            case ABOVE_40 -> Math.min(
-                    Math.min(MAX_ABOVE_40 + MAX_EXTRA_ABOVE_30_40 - above40Count,
-                             MAX_ABOVE_30 + MAX_ABOVE_40 + MAX_EXTRA_ABOVE_30_40 - above30Count - above40Count),
-                    totalRemaining);
-            case ABOVE_45 -> Math.min(MAX_ABOVE_45 - above45Count, totalRemaining);
+            case OPEN     -> Math.min(MAX_OPEN + MAX_EXTRA_ANY_CATEGORY - openCount, totalRemaining);
+            case ABOVE_30 -> Math.min(MAX_ABOVE_30 + MAX_EXTRA_ANY_CATEGORY - above30Count, totalRemaining);
+            case ABOVE_35 -> Math.min(MAX_ABOVE_35 + MAX_EXTRA_ANY_CATEGORY - above35Count, totalRemaining);
+            case ABOVE_40 -> Math.min(MAX_ABOVE_40 + MAX_EXTRA_ANY_CATEGORY - above40Count, totalRemaining);
         };
     }
 
     /** Human-readable slot summary for UI display. */
     public String getSlotSummary() {
-        return "Open:" + getPlayerCountByCategory(PlayerCategory.OPEN) + "/" + MAX_OPEN
-                + " | 30+:" + getPlayerCountByCategory(PlayerCategory.ABOVE_30) + "/" + (MAX_ABOVE_30 + MAX_EXTRA_ABOVE_30_40)
-                + " | 40+:" + getPlayerCountByCategory(PlayerCategory.ABOVE_40) + "/" + (MAX_ABOVE_40 + MAX_EXTRA_ABOVE_30_40)
-                + " | 45+:" + getPlayerCountByCategory(PlayerCategory.ABOVE_45) + "/" + MAX_ABOVE_45;
+        return "Open:" + getPlayerCountByCategory(PlayerCategory.OPEN) + "/" + (MAX_OPEN+ MAX_EXTRA_ANY_CATEGORY)
+                + " | 30+:" + getPlayerCountByCategory(PlayerCategory.ABOVE_30) + "/" + (MAX_ABOVE_30 + MAX_EXTRA_ANY_CATEGORY)
+                + " | 40+:" + getPlayerCountByCategory(PlayerCategory.ABOVE_40) + "/" + (MAX_ABOVE_40 + MAX_EXTRA_ANY_CATEGORY)
+                + " | 35+:" + getPlayerCountByCategory(PlayerCategory.ABOVE_35) + "/" + (MAX_ABOVE_35+ MAX_EXTRA_ANY_CATEGORY);
     }
-
     // --- Getters & Setters ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

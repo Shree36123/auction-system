@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Manage Players')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-people"></i> Players</h2>
+        <div class="d-flex gap-2">
+            <!-- Excel Import -->
+            <div>
+                <form th:action="@{/admin/players/import-excel}" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+                    <input type="file" name="excelFile" accept=".xlsx,.xls" class="form-control form-control-sm" required style="max-width: 220px;">
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="bi bi-file-earmark-excel"></i> Import Excel
+                    </button>
+                </form>
+                <small class="text-muted d-block mt-1">
+                    Excel columns: <strong>Name</strong>, Phone, Category, JerseySize, BasePrice, Achievements,
+                    <strong>Photo</strong> (Google Drive share link or any image URL)
+                </small>
+            </div>
+            <a th:href="@{/admin/players/add}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Add Player
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <form th:action="@{/admin/players}" method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat.label}"
+                                th:selected="${selectedCategory == cat}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option th:each="st : ${statuses}" th:value="${st}" th:text="${st}"
+                                th:selected="${selectedStatus == st}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Players Table -->
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered bg-white shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Phone</th>
+                    <th>Jersey</th>
+                    <th>Base Price</th>
+                    <th>Status</th>
+                    <th>Team</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="player, stat : ${players}">
+                    <td th:text="${stat.count}">1</td>
+                    <td>
+                        <!-- Handles both external URLs (Google Drive, etc.) and local uploads -->
+                        <img th:if="${player.profileImagePath != null}"
+                             th:src="${player.profileImagePath.startsWith('http') ? player.profileImagePath : '/uploads/' + player.profileImagePath}"
+                             alt="Player" class="rounded-circle" width="40" height="40"
+                             style="object-fit:cover;"
+                             onerror="this.src='/static/css/default-avatar.svg'">
+                        <span th:if="${player.profileImagePath == null}" class="text-muted">—</span>
+                    </td>
+                    <td class="fw-bold" th:text="${player.fullName}">Name</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${player.category.name() == 'OPEN'} ? 'bg-primary' :
+                                              (${player.category.name() == 'ABOVE_30'} ? 'bg-info' :
+                                              (${player.category.name() == 'ABOVE_40'} ? 'bg-warning text-dark' : 'bg-danger'))"
+                              th:text="${player.category.label}">Open</span>
+                    </td>
+                    <td th:text="${player.phoneNumber}">Phone</td>
+                    <td th:text="${player.jerseySize}">L</td>
+                    <td>₹<span th:text="${#numbers.formatDecimal(player.basePrice, 0, 0)}">0</span></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${player.status.name() == 'AVAILABLE'} ? 'bg-success' :
+                                              (${player.status.name() == 'SOLD'} ? 'bg-primary' : 'bg-secondary')"
+                              th:text="${player.status}">Available</span>
+                    </td>
+                    <td th:text="${player.team != null ? player.team.name : '-'}">-</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a th:href="@{/admin/players/edit/{id}(id=${player.id})}" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/admin/players/delete/{id}(id=${player.id})}" method="post"
+                                  onsubmit="return confirm('Delete this player?');" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(players)}">
+                    <td colspan="11" class="text-center text-muted py-4">No players found.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>

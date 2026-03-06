@@ -7,7 +7,7 @@ A Java Spring Boot web application for managing player auctions across teams.
 - **Player Management**: Register players with details (name, age, phone, jersey size, achievements, professional image)
 - **Team Management**: Create teams with budget allocation
 - **Auction System**: Conduct live auctions - sell players to teams within budget constraints
-- **Category-based Players**: Players are categorized by age (Open, 30+, 40+, 45+)
+- **Category-based Players**: Players are categorized by age (Open, 30+, 35+, 40+)
 - **Budget Tracking**: Real-time budget tracking for each team
 - **Team Roster**: Each team must buy 9 players across all categories
 - **Role-based Access**: Admin and Team Owner roles with different views
@@ -107,10 +107,10 @@ auction-system/
 
 | Category | Age Range | Description |
 |----------|-----------|-------------|
-| Open | Under 30 | No age restriction |
-| 30+ | 30-39 | Players aged 30 and above |
-| 40+ | 40-44 | Players aged 40 and above |
-| 45+ | 45+ | Players aged 45 and above |
+| Open     | Under 30  | No age restriction |
+| 30+      | 30-35     | Players aged 30 and above |
+| 35+      | 35-39     | Players aged 30 and above |
+| 40+      | 40-44     | Players aged 40 and above |
 
 ## Rules
 

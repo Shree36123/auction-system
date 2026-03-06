@@ -2,6 +2,9 @@ package com.auction.controller;
 
 import com.auction.model.*;
 import com.auction.service.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,15 +26,17 @@ public class AdminController {
     private final AuctionService auctionService;
     private final UserService userService;
     private final ExcelImportService excelImportService;
+    private final ExcelExportService excelExportService;
 
     public AdminController(PlayerService playerService, TeamService teamService,
                            AuctionService auctionService, UserService userService,
-                           ExcelImportService excelImportService) {
+                           ExcelImportService excelImportService, ExcelExportService excelExportService) {
         this.playerService = playerService;
         this.teamService = teamService;
         this.auctionService = auctionService;
         this.userService = userService;
         this.excelImportService = excelImportService;
+        this.excelExportService = excelExportService;
     }
 
     // ========== DASHBOARD ==========
@@ -414,5 +421,39 @@ public class AdminController {
                     "Some rows had errors: " + String.join("; ", result.errors()));
         }
         return "redirect:/admin/teams";
+    }
+
+    // ========== EXPORT TO EXCEL ==========
+
+    /**
+     * Export auction data (all players with their statuses) to Excel
+     */
+    @GetMapping("/auction/export")
+    public ResponseEntity<byte[]> exportAuctionData() throws IOException {
+        List<Player> players = playerService.getAllPlayers();
+        byte[] excelData = excelExportService.exportAuctionDataToExcel(players);
+
+        String filename = "auction-data-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")) + ".xlsx";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(excelData);
+    }
+
+    /**
+     * Export teams data to Excel
+     */
+    @GetMapping("/teams/export")
+    public ResponseEntity<byte[]> exportTeamsData() throws IOException {
+        List<Team> teams = teamService.getAllTeams();
+        byte[] excelData = excelExportService.exportTeamsToExcel(teams);
+
+        String filename = "teams-data-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")) + ".xlsx";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(excelData);
     }
 }

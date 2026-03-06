@@ -300,7 +300,7 @@ public class ExcelImportService {
         player.setStatus(PlayerStatus.AVAILABLE);
 
         // Full Name
-        Integer nameCol = findColumn(columnMap, "fullname", "full name", "name", "playername", "player name");
+        Integer nameCol = findColumn(columnMap, "Player name","fullname", "full name", "name", "playername", "player name");
         String fullName = nameCol != null ? getStringCellValue(row, nameCol) : null;
         if (fullName == null || fullName.isBlank()) {
             throw new IllegalArgumentException("Full Name is required");
@@ -308,28 +308,28 @@ public class ExcelImportService {
         player.setFullName(fullName.trim());
 
         // Phone Number
-        Integer phoneCol = findColumn(columnMap, "phonenumber", "phone number", "phone", "mobile", "contact", "mobilenumber");
+        Integer phoneCol = findColumn(columnMap, "Phone","phonenumber", "phone number", "phone", "mobile", "contact", "mobilenumber");
         String phone = phoneCol != null ? getStringCellValue(row, phoneCol) : null;
         player.setPhoneNumber(phone != null && !phone.isBlank() ? phone.trim() : "N/A");
 
         // Category defaults to OPEN (can be set from Excel if a Category column exists)
-        Integer catCol = findColumn(columnMap, "category", "playercategory", "player category");
+        Integer catCol = findColumn(columnMap, "Category","category", "playercategory", "player category");
         String catVal = catCol != null ? getStringCellValue(row, catCol) : null;
         PlayerCategory parsedCategory = PlayerCategory.fromString(catVal);
         player.setCategory(parsedCategory != null ? parsedCategory : PlayerCategory.OPEN);
 
         // Jersey Size
-        Integer jerseyCol = findColumn(columnMap, "jerseysize", "jersey size", "jersey", "tshirtsize", "size");
+        Integer jerseyCol = findColumn(columnMap, "Jersey size","jerseysize", "jersey size", "jersey", "tshirtsize", "size");
         String jerseySize = jerseyCol != null ? getStringCellValue(row, jerseyCol) : null;
         player.setJerseySize(jerseySize != null ? jerseySize.trim() : "");
 
         // Base Price
-        Integer priceCol = findColumn(columnMap, "baseprice", "base price", "price", "baseamount", "amount");
+        Integer priceCol = findColumn(columnMap, "Base price","baseprice", "base price", "price", "baseamount", "amount");
         double basePrice = priceCol != null ? getDoubleCellValue(row, priceCol) : 0;
         player.setBasePrice(basePrice);
 
         // Achievements
-        Integer achieveCol = findColumn(columnMap, "achievements", "achievement", "awards", "experience", "description");
+        Integer achieveCol = findColumn(columnMap, "Achievements","achievements", "achievement", "awards", "experience", "description");
         String achievements = achieveCol != null ? getStringCellValue(row, achieveCol) : "";
         player.setAchievements(achievements != null ? achievements.trim() : "");
 

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Team')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-shield-fill"></i> My Team</h2>
+
+    <div th:if="${team != null}">
+        <!-- Team Header -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white d-flex align-items-center gap-3">
+                <!-- Team Logo -->
+                <img th:if="${team.logoPath != null and !team.logoPath.equals('default-logo.png')}"
+                     th:src="@{/uploads/{img}(img=${team.logoPath})}"
+                     alt="Team Logo"
+                     style="width:60px;height:60px;object-fit:contain;background:#fff;border-radius:8px;padding:4px;"
+                     onerror="this.style.display='none'">
+                <i th:unless="${team.logoPath != null and !team.logoPath.equals('default-logo.png')}"
+                   class="bi bi-shield-fill fs-2"></i>
+                <h3 class="mb-0" th:text="${team.name}">Team Name</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center g-3">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6 class="text-muted">Total Budget</h6>
+                            <h4 class="text-dark">₹<span th:text="${#numbers.formatDecimal(team.totalBudget, 0, 0)}">0</span></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6 class="text-muted">Remaining</h6>
+                            <h4 class="text-success">₹<span th:text="${#numbers.formatDecimal(team.remainingBudget, 0, 0)}">0</span></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6 class="text-muted">Spent</h6>
+                            <h4 class="text-danger">₹<span th:text="${#numbers.formatDecimal(team.spentBudget, 0, 0)}">0</span></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6 class="text-muted">Players</h6>
+                            <h4 class="text-primary" th:text="${team.playerCount} + ' / 9'">0/9</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category wise player cards -->
+        <div th:each="cat : ${categories}" class="mb-4">
+            <h5>
+                <span class="badge"
+                      th:classappend="${cat.name() == 'OPEN'} ? 'bg-primary' :
+                                      (${cat.name() == 'ABOVE_30'} ? 'bg-info' :
+                                      (${cat.name() == 'ABOVE_40'} ? 'bg-warning text-dark' : 'bg-danger'))"
+                      th:text="${cat.label}">Category</span>
+                Players
+            </h5>
+            <div class="row g-3">
+                <div class="col-md-4" th:each="player : ${players}" th:if="${player.category == cat}">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex gap-3 align-items-start">
+                            <!-- Player Photo -->
+                            <img th:if="${player.profileImagePath != null}"
+                                 th:src="${player.profileImagePath.startsWith('http') ? player.profileImagePath : '/uploads/' + player.profileImagePath}"
+                                 alt="Player"
+                                 style="width:56px;height:56px;object-fit:cover;border-radius:50%;border:2px solid #dee2e6;flex-shrink:0;"
+                                 onerror="this.style.display='none'">
+                            <i th:unless="${player.profileImagePath != null}"
+                               class="bi bi-person-circle fs-1 text-secondary" style="flex-shrink:0;"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1" th:text="${player.fullName}">Player</h6>
+                                <p class="mb-1"><small>Jersey: <span th:text="${player.jerseySize}">L</span></small></p>
+                                <p class="mb-1 text-primary fw-bold">
+                                    Bought: ₹<span th:text="${#numbers.formatDecimal(player.soldPrice, 0, 0)}">0</span>
+                                </p>
+                                <p class="mb-0"><small class="text-muted" th:text="${player.achievements}">Achievements</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Table -->
+        <h4 class="mb-3 mt-4"><i class="bi bi-table"></i> All Team Players</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered bg-white shadow-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Jersey</th>
+                        <th>Phone</th>
+                        <th>Bought Price</th>
+                        <th>Achievements</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="player, stat : ${players}">
+                        <td th:text="${stat.count}">1</td>
+                        <td class="fw-bold" th:text="${player.fullName}">Player</td>
+                        <td><span class="badge bg-info" th:text="${player.category.label}">Cat</span></td>
+                        <td th:text="${player.jerseySize}">L</td>
+                        <td th:text="${player.phoneNumber}">Phone</td>
+                        <td class="text-primary fw-bold">₹<span th:text="${#numbers.formatDecimal(player.soldPrice, 0, 0)}">0</span></td>
+                        <td th:text="${player.achievements}">-</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(players)}">
+                        <td colspan="8" class="text-center text-muted py-3">No players in the team yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${team == null}" class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> No team assigned. Please contact the administrator.
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>

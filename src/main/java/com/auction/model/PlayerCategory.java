@@ -6,8 +6,8 @@ package com.auction.model;
 public enum PlayerCategory {
     OPEN("Open", "No age restriction"),
     ABOVE_30("30+", "Players aged 30 and above"),
-    ABOVE_40("40+", "Players aged 40 and above"),
-    ABOVE_45("45+", "Players aged 45 and above");
+    ABOVE_35("35+", "Players aged 35 and above"),
+    ABOVE_40("40+", "Players aged 40 and above");
 
     private final String label;
     private final String description;
@@ -47,8 +47,8 @@ public enum PlayerCategory {
         // Try common patterns: "above 30", "30 plus", "30+", "above30", etc.
         String normalized = v.toLowerCase().replaceAll("[^a-z0-9]", "");
         if (normalized.equals("open")) return OPEN;
-        if (normalized.contains("45")) return ABOVE_45;
         if (normalized.contains("40")) return ABOVE_40;
+        if (normalized.contains("35")) return ABOVE_35;
         if (normalized.contains("30")) return ABOVE_30;
 
         return null;

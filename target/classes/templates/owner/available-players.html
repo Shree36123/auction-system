@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Available Players')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-people"></i> Available Players for Auction</h2>
+
+    <!-- Team Budget Info -->
+    <div th:if="${team != null}" class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <strong><i class="bi bi-shield"></i> <span th:text="${team.name}">Team</span></strong> |
+            Remaining Budget: <strong class="text-success">₹<span th:text="${#numbers.formatDecimal(team.remainingBudget, 0, 0)}">0</span></strong> |
+            Players: <strong th:text="${team.playerCount} + ' / 9'">0/9</strong> |
+            <span class="text-muted small" th:text="${team.slotSummary}">slots</span>
+        </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <form th:action="@{/owner/players}" method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Filter by Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat.label}"
+                                th:selected="${selectedCategory == cat}"></option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Players Table -->
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered bg-white shadow-sm">
+            <thead class="table-success">
+                <tr>
+                    <th>#</th>
+                    <th>Image</th>
+                    <th>Player Name</th>
+                    <th>Category</th>
+                    <th>Jersey Size</th>
+                    <th>Base Price</th>
+                    <th>Achievements</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="player, stat : ${players}">
+                    <td th:text="${stat.count}">1</td>
+                    <td>
+                        <!-- Handles Google Drive URLs and local uploads. Click to enlarge -->
+                        <img th:if="${player.profileImagePath != null}"
+                             th:src="${player.profileImagePath.startsWith('http') ? player.profileImagePath : '/uploads/' + player.profileImagePath}"
+                             alt="Player" class="rounded-circle" width="44" height="44"
+                             style="object-fit:cover;cursor:zoom-in;"
+                             th:data-name="${player.fullName}"
+                             th:data-src="${player.profileImagePath.startsWith('http') ? player.profileImagePath : '/uploads/' + player.profileImagePath}"
+                             onclick="openPhotoZoom(this)"
+                             onerror="this.style.display='none'">
+                        <span th:unless="${player.profileImagePath != null}" class="text-muted">—</span>
+                    </td>
+                    <td class="fw-bold" th:text="${player.fullName}">Player Name</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${player.category.name() == 'OPEN'} ? 'bg-primary' :
+                                              (${player.category.name() == 'ABOVE_30'} ? 'bg-info' :
+                                              (${player.category.name() == 'ABOVE_40'} ? 'bg-warning text-dark' : 'bg-danger'))"
+                              th:text="${player.category.label}">Cat</span>
+                    </td>
+                    <td th:text="${player.jerseySize}">L</td>
+                    <td class="fw-bold">₹<span th:text="${#numbers.formatDecimal(player.basePrice, 0, 0)}">0</span></td>
+                    <td>
+                        <small th:text="${player.achievements}" class="text-muted"></small>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(players)}">
+                    <td colspan="8" class="text-center text-muted py-4">
+                        No available players found.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-muted mt-3">
+        <i class="bi bi-info-circle"></i> Players are sold during the live auction conducted by the admin.
+        You can view all available players and their details here.
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+
+<!-- Photo Zoom Modal -->
+<div class="modal fade" id="photoZoomModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title" id="photoZoomPlayerName">Player Photo</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <img id="photoZoomImg" src="" alt="Player Photo"
+                     style="max-width:100%;max-height:70vh;border-radius:12px;object-fit:contain;">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function openPhotoZoom(img) {
+    document.getElementById('photoZoomImg').src = img.dataset.src;
+    document.getElementById('photoZoomPlayerName').textContent = img.dataset.name || 'Player Photo';
+    new bootstrap.Modal(document.getElementById('photoZoomModal')).show();
+}
+</script>
+</body>
+</html>

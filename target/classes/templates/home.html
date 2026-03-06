@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Auction System - Home')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="auction-hero text-center text-white p-5 rounded-4 mb-4">
+        <h1 class="display-4 fw-bold"><i class="bi bi-trophy-fill text-warning"></i> Player Auction System</h1>
+        <p class="lead">Buy, bid, and build your dream team!</p>
+        <div th:if="${loggedInUser == null}">
+            <a th:href="@{/login}" class="btn btn-warning btn-lg mt-3">
+                <i class="bi bi-box-arrow-in-right"></i> Login to Get Started
+            </a>
+        </div>
+        <div th:if="${loggedInUser != null}">
+            <a th:href="@{/dashboard}" class="btn btn-warning btn-lg mt-3">
+                <i class="bi bi-speedometer2"></i> Go to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill display-4"></i>
+                    <h3 class="mt-2" th:text="${totalPlayers}">0</h3>
+                    <p class="mb-0">Total Players</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle-fill display-4"></i>
+                    <h3 class="mt-2" th:text="${soldPlayers}">0</h3>
+                    <p class="mb-0">Sold Players</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-warning text-dark h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-hourglass-split display-4"></i>
+                    <h3 class="mt-2" th:text="${availablePlayers}">0</h3>
+                    <p class="mb-0">Available Players</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-info text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-fill display-4"></i>
+                    <h3 class="mt-2" th:text="${#lists.size(teams)}">0</h3>
+                    <p class="mb-0">Teams</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teams Overview -->
+    <h2 class="mb-3"><i class="bi bi-shield-fill"></i> Teams</h2>
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3" th:each="team : ${teams}">
+            <div class="card team-card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold" th:text="${team.name}">Team Name</h5>
+                    <p class="text-muted mb-1">
+                        Owner: <span th:text="${team.owner?.fullName}">Owner</span>
+                    </p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Budget</small>
+                            <p class="fw-bold text-success mb-0">
+                                ₹<span th:text="${#numbers.formatDecimal(team.remainingBudget, 0, 0)}">0</span>
+                            </p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Players</small>
+                            <p class="fw-bold text-primary mb-0">
+                                <span th:text="${team.playerCount}">0</span> / 9
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>
