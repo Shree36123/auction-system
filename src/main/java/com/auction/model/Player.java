@@ -40,7 +40,7 @@ public class Player {
     private Double basePrice;
 
     /** Current / sold price */
-    private Double soldPrice;
+    private Double soldPrice=0.0d;
 
     /** Auction status */
     @Enumerated(EnumType.STRING)
@@ -56,6 +56,7 @@ public class Player {
 
     // --- Constructors ---
     public Player() {
+        this.soldPrice=0.0d;
         this.timestamp = LocalDateTime.now();
     }
 
